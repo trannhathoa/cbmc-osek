@@ -1,0 +1,14 @@
+TASK t1 {
+    PRIORITY = 2;
+    AUTOSTART=TRUE;
+};
+
+TASK t2 {
+    PRIORITY = 3;
+    AUTOSTART=FALSE;
+};
+
+TASK t3 {
+    PRIORITY = 1;
+    AUTOSTART=FALSE;
+};

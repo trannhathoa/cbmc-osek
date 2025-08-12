@@ -1,0 +1,9 @@
+TASK task1 {
+    PRIORITY = 3;
+    AUTOSTART=TRUE;
+};
+
+TASK task2 {
+    PRIORITY = 4;
+    AUTOSTART=FALSE;
+};
