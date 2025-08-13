@@ -1,14 +1,17 @@
 TASK t1 {
+    SCHEDULE = NON;
     PRIORITY = 2;
     AUTOSTART=TRUE;
 };
 
 TASK t2 {
+    SCHEDULE=FULL;
     PRIORITY = 3;
     AUTOSTART=FALSE;
 };
 
 TASK t3 {
+    SCHEDULE=NON;
     PRIORITY = 1;
     AUTOSTART=FALSE;
 };
