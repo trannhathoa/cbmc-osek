@@ -1,9 +1,11 @@
 TASK t1 {
+    SCHEDULE = NON;
     PRIORITY = 3;
     AUTOSTART=TRUE;
 };
 
 TASK t2 {
+    SCHEDULE = FULL;
     PRIORITY = 2;
     AUTOSTART=FALSE;
 };

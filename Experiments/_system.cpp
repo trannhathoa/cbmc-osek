@@ -1,13 +1,12 @@
 #include <assert.h>
 #include "_system.h"
-#include "ActivateChainTerminateTask.cpp"
+#include "TerminateTask.cpp"
 
 #define  TASK void
 
 //task
 TASK t1();
 TASK t2();
-TASK t3();
 
 //wrapper
 TASK __t1(){
@@ -17,10 +16,6 @@ TASK __t1(){
 TASK __t2(){
 	Schedule();
 	t2();
-}
-TASK __t3(){
-	Schedule();
-	t3();
 }
 
 //API function implementation
@@ -35,9 +30,6 @@ TASK ActivateTask(int task) {
 	case _t2:
 		__t2();
 		break;
-	case _t3:
-		__t3();
-		break;
 	}
 }
 TASK ChainTask(int task) {
@@ -48,9 +40,6 @@ TASK ChainTask(int task) {
 		break;
 	case _t2:
 		__t2();
-		break;
-	case _t3:
-		__t3();
 		break;
 	}
 }
