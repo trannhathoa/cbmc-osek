@@ -34,7 +34,8 @@ Author: Daniel Kroening, kroening@kroening.com
 
 
 int called_function_type = No_Function; //no function
-irep_idt task_called_name;
+irep_idt current_task_name = "main";
+irep_idt called_task_name = "main";
 int step = 0;
 /////task priority for frame stack
 //std::map<irep_idt, int> task_priority;
@@ -634,9 +635,12 @@ int goto_symext::get_API_function_type(statet &state) {
           log.status() << "ActivateTask is called" << messaget::eom;
 
 //          log.status() << "argument: " << stoi(format_to_string(state.source.pc->call_arguments().front())) << messaget::eom;
-          task_called_name =
+
+          current_task_name = called_task_name;
+          called_task_name =
             cbmc_osek_configuration::get_task_name(stoi(format_to_string(state.source.pc->call_arguments().front())));
-          log.status() << "argument: " << task_called_name <<messaget::eom ;
+
+          log.status() << current_task_name << " calls: " << called_task_name <<messaget::eom ;
 
 
 //                       << state.source.pc->call_arguments().begin()->type().id() << messaget::eom
@@ -705,7 +709,7 @@ void goto_symext::print_stack_to_check(statet &state, bool print_next_function){
 }
 
 ///move the top stack frame to the right position (for execution order)
-int goto_symext::move_top_stack_frame(statet &state, bool remove_top_frame = false){
+int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove_top_frame = false){
   auto &call_stack = state.threads[state.source.thread_nr].call_stack;
 
   log.status() << "Task: " << call_stack.top().task_name<< ":"
@@ -764,6 +768,41 @@ int goto_symext::move_top_stack_frame(statet &state, bool remove_top_frame = fal
   return  pos;
 }
 
+
+int goto_symext::move_top_stack_frame_follow_schedule_type(statet &state, irep_idt current_task){
+  auto &call_stack = state.threads[state.source.thread_nr].call_stack;
+  print_stack_to_check(state);
+
+  int pos = call_stack.size();
+  bool need_changed = false;
+  auto task_function = as_string(current_task) + "()";
+  for (auto frame =  call_stack.rbegin(); frame != call_stack.rend(); ++frame) {
+    if (as_string(frame->task_name).find(task_function) == std::string::npos)
+    {
+      pos--;
+    } else {
+      need_changed = true;
+      break;
+    }
+  }
+
+  if (need_changed)
+  {
+    log.status() << "+ Need to move the new frame before position = " << --pos <<  messaget::eom;
+    call_stack.emplace(call_stack.begin() + pos, call_stack.top()); //[pos] = call_stack.top();
+    //go to top frame
+    symex_end_of_function(state);
+    symex_transition(state);
+
+    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
+    print_stack_to_check(state);
+  }else {
+    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
+    return -1;
+  }
+  return  pos;
+}
+
 ///assign priority and execute function
 void goto_symext::assign_priority_and_execution_order_after_API(statet &state, const get_goto_functiont &get_goto_function, bool remove_top_frame = false)
 {
@@ -777,7 +816,7 @@ void goto_symext::assign_priority_and_execution_order_after_API(statet &state, c
   if(tsk_priority > 0)
   {
     log.status() << messaget::eom << "--> Find position for Task:" << messaget::eom;
-    move_top_stack_frame(state, remove_top_frame);
+    move_top_stack_frame_follow_priority(state, remove_top_frame);
   }
   else
   {
@@ -840,7 +879,7 @@ void goto_symext::symex_step(
     case Normal_Function:
       symex_function_call(get_goto_function, state, instruction);
       break;
-    case TerminateTask: //same as END_FUNCTION
+    case TerminateTask:             //same as END_FUNCTION
       symex_end_of_function(state); //end terminate function
       symex_transition(state);
       print_stack_to_check(state);
@@ -848,34 +887,51 @@ void goto_symext::symex_step(
       break;
 
     case ActivateTask:
-      log.status() << "----------------------------------------" << messaget::eom;
+      log.status() << "----------------------------------------"
+                   << messaget::eom;
       log.status() << "Execute ActivateTask " << messaget::eom;
 
       //execute ActivateTask
       execute_next_instruction(get_goto_function, state);
       assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
+      //      print_stack_to_check(state);
 
-//      while (state.source.function_id.compare("ActivateTask") == 0){
-      while(as_string(state.source.function_id).find("ActivateTask") != std::string::npos){
-        log.status() << "--> symex_step: "
-                     << state.source.function_id << " "
-                     << format(state.source.pc->code())<< messaget::eom;
+      //      while (state.source.function_id.compare("ActivateTask") == 0){
+      while(as_string(state.source.function_id).find("ActivateTask") !=
+            std::string::npos)
+      {
+        log.status() << "--> symex_step: " << state.source.function_id << " "
+                     << format(state.source.pc->code()) << messaget::eom;
         execute_next_instruction(get_goto_function, state);
         assign_value_to_top_stack_frame(state);
         print_stack_to_check(state);
       }
 
       //execute Wrapper Function
-      log.status() << "--> execute wrapper task: "
-                   << state.source.function_id << messaget::eom;
+      log.status() << "--> execute wrapper task: " << state.source.function_id
+                   << messaget::eom;
       execute_next_instruction(get_goto_function, state);
       assign_value_to_top_stack_frame(state);
 
-      log.status() << "----------Move frame---------"
-                   << task_called_name << messaget::eom;
-      move_top_stack_frame(state, true);
-      print_stack_to_check(state);
+      //if current task is preempted need to move the frame
+      log.status() << current_task_name << " calls: " << called_task_name
+                   << messaget::eom;
+      if(current_task_name == "main") {
+        log.status() << "-----No need to move new frame of task: " << called_task_name
+                     << messaget::eom;
+      } else {
+        if (!cbmc_osek_configuration::is_schedule_full(current_task_name)) {
+          log.status() << "---Move new frame of task: " << called_task_name
+                       << "after current task: " << current_task_name << messaget::eom;
+          move_top_stack_frame_follow_schedule_type(state, current_task_name);
+        } else //current_task.scheduler_full
+        {
+          log.status() << "-----Move frame of new task following priority"
+                       << messaget::eom;
+          move_top_stack_frame_follow_priority(state, true);
+        }
+        print_stack_to_check(state);
+       }
 
       //remove caller activate
       log.status() << "--> remove caller activate task: "
@@ -1024,8 +1080,9 @@ void goto_symext::symex_step(
       print_stack_to_check(state);
 
       log.status() << "----------Move frame---------"
-                   << task_called_name << messaget::eom;
-      move_top_stack_frame(state, true);
+                   << called_task_name
+                   << messaget::eom;
+      move_top_stack_frame_follow_priority(state, true);
       print_stack_to_check(state);
 
       //remove caller chaintask

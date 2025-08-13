@@ -16,6 +16,13 @@ const int Schedule_after_ActivateTask = 4;
 const int ChainTask = 5;
 const int Schedule_after_ChainTask = 6;
 
+struct Task {
+  std::string name;
+  bool schedule_type = true; //SCHEDULE_FULL
+  int priority = 0;
+  bool autostart = false;
+};
+
 class cbmc_osek_configuration
 {
 private:
@@ -28,7 +35,7 @@ private:
   static std::map<int, irep_idt> task_id;
   static void read_configuration_from_oil_file();
 
-  //    static void define_task_priority();
+//  static void define_task_priority();
   //    static void define_task_id();
 
 public:
@@ -38,9 +45,11 @@ public:
   static int get_function_code(const irep_idt function_name);
   static irep_idt get_task_name(int function_id);
   static int get_task_priority(irep_idt task_name);
-  static void get_task_attribute();
+  static void get_task_attribute_from_oil();
 
-
+//  static std::map<irep_idt, bool> task_schedule_type;
+  static std::map<irep_idt, Task> tasks;
+  static bool is_schedule_full(irep_idt task_name);
 };
 
 #endif //CBMC_CBMC_OSEK_CONFIGURATION_H

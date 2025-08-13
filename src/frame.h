@@ -17,6 +17,9 @@ Author: Romain Brenguier, romain.brenguier@diffblue.com
 
 #include <analyses/lexical_loops.h>
 
+//const bool SCHEDULE_FULL = true;
+//const bool SCHEDULE_NON = false;
+
 /// Stack frames -- these are used for function calls and for exceptions
 struct framet
 {
@@ -29,6 +32,7 @@ struct framet
 
   irep_idt task_name;
   int task_priority = -1;
+//  bool schedule = SCHEDULE_FULL;
 
   std::map<
     goto_programt::const_targett,

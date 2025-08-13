@@ -866,9 +866,11 @@ public:
   void print_stack_to_check(statet &state, bool print_next_function = false);
 //  int find_stack_frame(statet &state, const dstringt &func_name);
   int assign_value_to_top_stack_frame(statet &state);
-  int move_top_stack_frame(statet &state, bool remove_top_frame);
+  int move_top_stack_frame_follow_priority(statet &state, bool remove_top_frame);
   void assign_priority_and_execution_order_after_API(statet &state, const get_goto_functiont &get_goto_function, bool remove_top_frame);
   int get_API_function_type(statet &state);
+  int move_top_stack_frame_follow_schedule_type(
+    statet &state, irep_idt current_task);
 };
 
 /// Transition to the next instruction, which increments the internal program
