@@ -5,7 +5,7 @@ TASK t1 {
 };
 
 TASK t2 {
-    SCHEDULE = FULL;
-    PRIORITY = 2;
+    SCHEDULE = NON;
+    PRIORITY = 4;
     AUTOSTART=FALSE;
 };

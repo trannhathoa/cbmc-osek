@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "_system.h"
-#include "TerminateTask.cpp"
+#include "motivatingexample.cpp"
 
 #define  TASK void
 
