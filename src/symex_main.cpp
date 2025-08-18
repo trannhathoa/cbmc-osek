@@ -675,8 +675,9 @@ int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove
   for (auto frame =  call_stack.rbegin(); frame != call_stack.rend(); ++frame) {
     func_id = frame->task_name;
     exits_frame_priority = frame->task_priority;
+    pos--;
 
-//    log.status() << "- Position in stack: " << pos-- << ":" << func_id
+//    log.status() << "- Position in stack: " << pos << ":" << func_id
 //                 << ", priority: " << exits_frame_priority <<  messaget::eom;
     //ignore top frame stack
     if (is_top_frame) {
@@ -711,38 +712,52 @@ int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove
 }
 
 
-int goto_symext::move_top_stack_frame_follow_schedule_type(statet &state, irep_idt current_task){
+int goto_symext::move_top_stack_frame_follow_schedule_non(statet &state, irep_idt current_task){
+  //check prirority to order the execution
   auto &call_stack = state.threads[state.source.thread_nr].call_stack;
-//  print_stack_to_check(state);
+  print_stack_to_check(state);
 
   int pos = call_stack.size();
-  bool need_changed = false;
+  bool passed_task_function = false;
   auto task_function = as_string(current_task) + "()";
+
+  int new_task_priority = cbmc_osek_configuration::get_task_priority(called_task_name);
+  int exits_frame_priority = call_stack.top().task_priority;
+  dstringt func_id;
+
   for (auto frame =  call_stack.rbegin(); frame != call_stack.rend(); ++frame) {
-    if (as_string(frame->task_name).find(task_function) == std::string::npos)
+    //passes task_function in the stack
+    if (!passed_task_function &&
+       as_string(frame->task_name).find(task_function) == std::string::npos)
     {
       pos--;
+      continue;
     } else {
-      need_changed = true;
-      break;
+      passed_task_function = true;
+    }
+    if (passed_task_function) {
+        func_id = frame->task_name;
+        exits_frame_priority = frame->task_priority;
+        pos--;
+
+        if (exits_frame_priority == 0) //all default value for frame is now 0
+          continue;
+        else
+          if(new_task_priority > exits_frame_priority | func_id.compare("main") == 0)
+            break;
     }
   }
 
-  if (need_changed)
-  {
-    pos--;
+  pos--;
 //    log.status() << "+ Need to move the new frame before position = " << pos <<  messaget::eom;
-    call_stack.emplace(call_stack.begin() + pos, call_stack.top()); //[pos] = call_stack.top();
-    //go to top frame
-    symex_end_of_function(state);
-    symex_transition(state);
+  call_stack.emplace(call_stack.begin() + pos, call_stack.top()); //[pos] = call_stack.top();
+  //go to top frame
+  symex_end_of_function(state);
+  symex_transition(state);
 
 //    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
-//    print_stack_to_check(state);
-  }else {
-//    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
-    return -1;
-  }
+  print_stack_to_check(state);
+
   return  pos;
 }
 
@@ -844,15 +859,30 @@ void goto_symext::symex_step(
 //        log.status() << "-----No need to move new frame of task: " << called_task_name
 //                     << messaget::eom;
       } else {
-        if (cbmc_osek_configuration::is_schedule_full(current_task_name)) {
+        if (!cbmc_osek_configuration::is_schedule_full(current_task_name)) {
+          //current_task.scheduler_non: current task cannot be preempted
+
 //          log.status() << "---Move new frame of task: " << called_task_name
 //                       << "after current task: " << current_task_name << messaget::eom;
-          move_top_stack_frame_follow_schedule_type(state, current_task_name);
-        } else //current_task.scheduler_full
-        {
-//          log.status() << "-----Move frame of new task following priority"
-//                       << messaget::eom;
-          move_top_stack_frame_follow_priority(state, true);
+          move_top_stack_frame_follow_schedule_non(state, current_task_name);
+        } else {
+          //current_task.scheduler_non: move new task to the stack following its priority
+          //current_task no need to move
+//          print_stack_to_check(state);
+
+//          log.status() << "current_task: " << current_task_name
+//                       << ", called_task_name: " << called_task_name << messaget::eom;
+
+          int current_tsk_pri = cbmc_osek_configuration::get_task_priority(current_task_name);
+          int called_tsk_pri = cbmc_osek_configuration::get_task_priority(called_task_name);
+          if (current_tsk_pri < called_tsk_pri ) {
+            //do nothing: called_task must on top of the stack
+          } else
+          {
+//            log.status() << "--- Move new frame of task: " << called_task_name
+//                         << ", after current task: " << current_task_name << messaget::eom;
+            move_top_stack_frame_follow_priority(state, true);
+          }
         }
 //        print_stack_to_check(state);
        }

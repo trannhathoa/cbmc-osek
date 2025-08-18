@@ -101,8 +101,10 @@ void cbmc_osek_configuration::read_configuration_from_oil_file(){
   std::string line;
   std::string current_task;
   std::string task;
+  std::string task_function;
   std::string _task_id;
   std::string __task_wrapper;
+  std::string task_name;
 
   std::regex taskStartRegex(R"(TASK\s+(\w+)\s*\{)");
   std::regex propertyRegex(R"((\w+)\s*=\s*([^;]+);)");
@@ -112,7 +114,7 @@ void cbmc_osek_configuration::read_configuration_from_oil_file(){
   bool inTask = false;
 
   int id = 0;
-  std::string task_name;
+
   while (std::getline(file, line)) {
     // Remove leading/trailing spaces
     line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](unsigned char ch) {
@@ -160,11 +162,12 @@ void cbmc_osek_configuration::read_configuration_from_oil_file(){
           }
         } else if (key == "PRIORITY") {
           currentTask.priority = std::stoi(value);
-          task = task_name + "()";
-          _task_id = "_" + task;
+          task_function = task_name + "()";
+          _task_id = "_" + task_name;
           __task_wrapper = "_" + _task_id ;
 
-          task_priority[task] = currentTask.priority;
+          task_priority[task_name] = currentTask.priority;
+          task_priority[task_function] = currentTask.priority;
           task_priority[_task_id] = currentTask.priority;
           task_priority[__task_wrapper] = currentTask.priority;
         } else if (key == "AUTOSTART") {

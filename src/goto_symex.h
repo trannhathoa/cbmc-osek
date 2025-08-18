@@ -869,7 +869,7 @@ public:
   int move_top_stack_frame_follow_priority(statet &state, bool remove_top_frame);
   void assign_priority_and_execution_order_after_API(statet &state, const get_goto_functiont &get_goto_function, bool remove_top_frame);
   int get_API_function_type(statet &state);
-  int move_top_stack_frame_follow_schedule_type(
+  int move_top_stack_frame_follow_schedule_non(
     statet &state, irep_idt current_task);
 };
 
