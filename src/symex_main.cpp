@@ -37,16 +37,6 @@ int called_function_type = No_Function; //no function
 irep_idt current_task_name = "main";
 irep_idt called_task_name = "main";
 int step = 0;
-/////task priority for frame stack
-//std::map<irep_idt, int> task_priority;
-/////task name
-//std::map<int, irep_idt> task_id;
-
-
-
-
-
-
 
 
 symex_configt::symex_configt(const optionst &options)
@@ -92,10 +82,6 @@ static void pop_exited_loops(
   }
 }
 
-//move the execution function
-//static const goto_symext::get_goto_functiont get_goto_functio;
-//static goto_symext::statet *stat;
-//static goto_programt::instructiont instructio;
 
 void symex_transition(
   goto_symext::statet &state,
@@ -594,24 +580,7 @@ void goto_symext::print_symex_step(statet &state)
   {
     log.status() << messaget::eom;
 
-//    if(!call_stack.empty())
-//    {
-//      log.status() << "Call stack:" << messaget::eom;
-//
-//      for(auto &frame : call_stack)
-//      {
-//        print_callstack_entry(frame.calling_location) << messaget::eom;
-//      }
-//
-//      print_callstack_entry(state.source) << messaget::eom;
-//
-//      // Add the method we're about to enter with no location number.
-//      log.status() << "-->" << format(state.source.pc->call_function())
-//                   << messaget::eom
-//                   << messaget::eom;
-//    }
-
-    print_stack_to_check(state, true);
+//    print_stack_to_check(state, true);
   }
 }
 
@@ -620,67 +589,48 @@ int goto_symext::get_API_function_type(statet &state) {
   int result = Normal_Function;
   if(state.source.pc->type() == FUNCTION_CALL)
   {
-//    if(!call_stack.empty())
-//    {
       // Add the method we're about to enter with no location number.
       irep_idt func_name = format_to_string(state.source.pc->call_function());
       int func_type = cbmc_osek_configuration::get_function_code(func_name);
-      log.status() << "Function name: " << func_name << messaget::eom;
+//      log.status() << "Function name: " << func_name << messaget::eom;
       switch(func_type){
         case TerminateTask:
-          log.status() << "TerminateTask is called" << messaget::eom;
+//          log.status() << "TerminateTask is called" << messaget::eom;
           result = TerminateTask;
           break;
         case ActivateTask:
-          log.status() << "ActivateTask is called" << messaget::eom;
-
-//          log.status() << "argument: " << stoi(format_to_string(state.source.pc->call_arguments().front())) << messaget::eom;
+//          log.status() << "ActivateTask is called" << messaget::eom;
 
           current_task_name = called_task_name;
           called_task_name =
             cbmc_osek_configuration::get_task_name(stoi(format_to_string(state.source.pc->call_arguments().front())));
 
-          log.status() << current_task_name << " calls: " << called_task_name <<messaget::eom ;
-
-
-//                       << state.source.pc->call_arguments().begin()->type().id() << messaget::eom
-//                       << state.source.pc->call_arguments().begin()->id() << messaget::eom
-//                       << format_to_string(state.source.pc->call_function()) <<messaget::eom
-//                       << state.source.pc->call_arguments().size() <<messaget::eom;
-//          for (auto arg =  state.source.pc->call_arguments().rbegin();
-//              arg != state.source.pc->call_arguments().rend(); ++arg)
-//            log.status() << format_to_string(&arg) << messaget::eom;
-
-//          for(auto arg : state.source.pc->call_arguments())
-//            log.status() << arg.id() << messaget::eom;
-//            << state.source.pc->call_function().id_string() <<messaget::eom;
-//                       << state.source.pc->code().op0() << messaget::eom ;
+//          log.status() << current_task_name << " calls: " << called_task_name <<messaget::eom ;
 
           result = ActivateTask;
           break;
         case Schedule:
           switch(called_function_type) {
             case ChainTask:
-              log.status() << "Schedule is called after ChainTask"
-                           << messaget::eom;
+//              log.status() << "Schedule is called after ChainTask"
+//                           << messaget::eom;
               result = Schedule_after_ChainTask;
               break;
             case ActivateTask:
-              log.status() << "Schedule is called after ActivateTask"
-                           << messaget::eom;
+//              log.status() << "Schedule is called after ActivateTask"
+//                           << messaget::eom;
               result = Schedule_after_ActivateTask;
               break;
           }
           break;
         case ChainTask:
-          log.status() << "ChainTask is called" << messaget::eom;
+//          log.status() << "ChainTask is called" << messaget::eom;
           result = ChainTask;
           break;
         default:
           result = Normal_Function;
       }
     }
-//  }
   return result;
 }
 
@@ -712,13 +662,8 @@ void goto_symext::print_stack_to_check(statet &state, bool print_next_function){
 int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove_top_frame = false){
   auto &call_stack = state.threads[state.source.thread_nr].call_stack;
 
-  log.status() << "Task: " << call_stack.top().task_name<< ":"
-               << call_stack.top().task_priority <<  messaget::eom;
-
-//  if (remove_top_frame){
-//    log.status() << "- Pop in stack: " <<  messaget::eom;
-//    call_stack.pop();
-//  }
+//  log.status() << "Task: " << call_stack.top().task_name<< ":"
+//               << call_stack.top().task_priority <<  messaget::eom;
 
   int pos = call_stack.size();
   int new_task_priority = call_stack.top().task_priority;
@@ -728,12 +673,11 @@ int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove
   bool is_top_frame = true;
   bool need_changed = false;
   for (auto frame =  call_stack.rbegin(); frame != call_stack.rend(); ++frame) {
-//    func_id = frame->calling_location.function_id;
     func_id = frame->task_name;
     exits_frame_priority = frame->task_priority;
 
-    log.status() << "- Position in stack: " << pos-- << ":" << func_id
-                 << ", priority: " << exits_frame_priority <<  messaget::eom;
+//    log.status() << "- Position in stack: " << pos-- << ":" << func_id
+//                 << ", priority: " << exits_frame_priority <<  messaget::eom;
     //ignore top frame stack
     if (is_top_frame) {
       is_top_frame = false;
@@ -751,18 +695,16 @@ int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove
 
   if (need_changed)
   {
-    log.status() << "+ Need to move the new frame after position = " << ++pos <<  messaget::eom;
+//    log.status() << "+ Need to move the new frame after position = " << ++pos <<  messaget::eom;
     call_stack.emplace(call_stack.begin() + pos, call_stack.top()); //[pos] = call_stack.top();
     //go to top frame
     symex_end_of_function(state);
     symex_transition(state);
 
-    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
-    print_stack_to_check(state);
-//    auto top_frame = call_stack.top();
-//    call_stack.insert(call_stack.begin()+pos,top_frame);
+//    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
+//    print_stack_to_check(state);
   }else {
-    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
+//    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
     return -1;
   }
   return  pos;
@@ -771,7 +713,7 @@ int goto_symext::move_top_stack_frame_follow_priority(statet &state, bool remove
 
 int goto_symext::move_top_stack_frame_follow_schedule_type(statet &state, irep_idt current_task){
   auto &call_stack = state.threads[state.source.thread_nr].call_stack;
-  print_stack_to_check(state);
+//  print_stack_to_check(state);
 
   int pos = call_stack.size();
   bool need_changed = false;
@@ -788,16 +730,17 @@ int goto_symext::move_top_stack_frame_follow_schedule_type(statet &state, irep_i
 
   if (need_changed)
   {
-    log.status() << "+ Need to move the new frame before position = " << --pos <<  messaget::eom;
+    pos--;
+//    log.status() << "+ Need to move the new frame before position = " << pos <<  messaget::eom;
     call_stack.emplace(call_stack.begin() + pos, call_stack.top()); //[pos] = call_stack.top();
     //go to top frame
     symex_end_of_function(state);
     symex_transition(state);
 
-    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
-    print_stack_to_check(state);
+//    log.status() << "+ stack after move frame to position = " << pos <<  messaget::eom;
+//    print_stack_to_check(state);
   }else {
-    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
+//    log.status() << "+ No need to move the new frame!" <<  messaget::eom;
     return -1;
   }
   return  pos;
@@ -809,29 +752,19 @@ void goto_symext::assign_priority_and_execution_order_after_API(statet &state, c
   //assign values for stack frame (task name, priority)
   int tsk_priority = assign_value_to_top_stack_frame(state);
   //print stack to check
-  log.status() << "-STACK After assigning priority:" << messaget::eom;
-  print_stack_to_check(state);
+//  log.status() << "-STACK After assigning priority:" << messaget::eom;
+//  print_stack_to_check(state);
 
   //put new stack frame to right position (with its priority)
   if(tsk_priority > 0)
   {
-    log.status() << messaget::eom << "--> Find position for Task:" << messaget::eom;
+//    log.status() << messaget::eom << "--> Find position for Task:" << messaget::eom;
     move_top_stack_frame_follow_priority(state, remove_top_frame);
   }
   else
   {
-    log.status() << "No need to order the task" << messaget::eom;
+//    log.status() << "No need to order the task" << messaget::eom;
   }
-
-
-
-//    if(function_called.compare("ChainTask") == 0)
-//    {
-//      log.status() << messaget::eom << "--> ChainTask " << messaget::eom;
-//      ///call ChainTask
-//      goto_symext::prepare_chain_task(state);
-//      print_stack_to_check(state);
-//    }
 }
 
 ///assign priority of the function to the top stack frame
@@ -844,9 +777,9 @@ int goto_symext::assign_value_to_top_stack_frame(statet &state){
       call_stack.top().task_priority = priority;
     }
 
-    goto_symext::log.status() << "Values of top task frame will be: "
-                              << call_stack.top().task_name
-                              << "," << priority << messaget::eom;
+//    goto_symext::log.status() << "Values of top task frame will be: "
+//                              << call_stack.top().task_name
+//                              << "," << priority << messaget::eom;
     return  priority;
 }
 
@@ -855,14 +788,7 @@ void goto_symext::symex_step(
   const get_goto_functiont &get_goto_function,
   statet &state)
 {
-  // Print debug statements if they've been enabled.
-  print_symex_step(state); //can realize called_function_type: NO! print only
-
-  // Print debug statements if they've been enabled.
-//  print_symex_step(state);
-//  execute_next_instruction(get_goto_function, state);
-//  kill_instruction_local_symbols(state);
-
+//  print_symex_step(state); //can realize called_function_type: NO! print only
   if(state.source.pc->type() == FUNCTION_CALL)
   {
     auto func_type = get_API_function_type(state);
@@ -882,325 +808,123 @@ void goto_symext::symex_step(
     case TerminateTask:             //same as END_FUNCTION
       symex_end_of_function(state); //end terminate function
       symex_transition(state);
-      print_stack_to_check(state);
+//      print_stack_to_check(state);
       called_function_type = No_Function;
       break;
 
     case ActivateTask:
-      log.status() << "----------------------------------------"
-                   << messaget::eom;
-      log.status() << "Execute ActivateTask " << messaget::eom;
+//      log.status() << "----------------------------------------"
+//                   << messaget::eom;
+//      log.status() << "Execute ActivateTask " << messaget::eom;
 
       //execute ActivateTask
       execute_next_instruction(get_goto_function, state);
       assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
 
-      //      while (state.source.function_id.compare("ActivateTask") == 0){
       while(as_string(state.source.function_id).find("ActivateTask") !=
             std::string::npos)
       {
-        log.status() << "--> symex_step: " << state.source.function_id << " "
-                     << format(state.source.pc->code()) << messaget::eom;
+//        log.status() << "--> symex_step: " << state.source.function_id << " "
+//                     << format(state.source.pc->code()) << messaget::eom;
         execute_next_instruction(get_goto_function, state);
         assign_value_to_top_stack_frame(state);
-        print_stack_to_check(state);
+//        print_stack_to_check(state);
       }
 
       //execute Wrapper Function
-      log.status() << "--> execute wrapper task: " << state.source.function_id
-                   << messaget::eom;
+//      log.status() << "--> execute wrapper task: " << state.source.function_id
+//                   << messaget::eom;
       execute_next_instruction(get_goto_function, state);
       assign_value_to_top_stack_frame(state);
 
       //if current task is preempted need to move the frame
-      log.status() << current_task_name << " calls: " << called_task_name
-                   << messaget::eom;
+//      log.status() << current_task_name << " calls: " << called_task_name
+//                   << messaget::eom;
       if(current_task_name == "main") {
-        log.status() << "-----No need to move new frame of task: " << called_task_name
-                     << messaget::eom;
+//        log.status() << "-----No need to move new frame of task: " << called_task_name
+//                     << messaget::eom;
       } else {
-        if (!cbmc_osek_configuration::is_schedule_full(current_task_name)) {
-          log.status() << "---Move new frame of task: " << called_task_name
-                       << "after current task: " << current_task_name << messaget::eom;
+        if (cbmc_osek_configuration::is_schedule_full(current_task_name)) {
+//          log.status() << "---Move new frame of task: " << called_task_name
+//                       << "after current task: " << current_task_name << messaget::eom;
           move_top_stack_frame_follow_schedule_type(state, current_task_name);
         } else //current_task.scheduler_full
         {
-          log.status() << "-----Move frame of new task following priority"
-                       << messaget::eom;
+//          log.status() << "-----Move frame of new task following priority"
+//                       << messaget::eom;
           move_top_stack_frame_follow_priority(state, true);
         }
-        print_stack_to_check(state);
+//        print_stack_to_check(state);
        }
 
       //remove caller activate
-      log.status() << "--> remove caller activate task: "
-                  << state.source.function_id << messaget::eom;
+//      log.status() << "--> remove caller activate task: "
+//                  << state.source.function_id << messaget::eom;
       symex_end_of_function(state); //terminate function
       symex_transition(state);
-      print_stack_to_check(state);
-      called_function_type = No_Function;
-
-//      log.status() << "1 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute ActivateTask
-//      assign_value_to_top_stack_frame(state);
 //      print_stack_to_check(state);
-//
-//      log.status() << "2 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute ActivateTask
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-//
-//      log.status() << "3 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute TASK1
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-//
-//      log.status() << "4 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute Schedule
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-//
-//      log.status() << "5 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute TASK1
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-//
-//      log.status() << "6 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id << " "
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute T1
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-//
-//      log.status() << "move?" << messaget::eom;
-
-      //      called_function_type = ActivateTask; //no needed!
-//      log.status() << "----------------------------------------"
-//                   << task_called_name << messaget::eom;
-
-//      log.status() << "7 " << messaget::eom;
-//      log.status() << "--> symex_step: "
-//                   << state.source.function_id
-//                   << format(state.source.pc->code())<< messaget::eom;
-//      execute_next_instruction(get_goto_function, state); //execute T1
-//      assign_value_to_top_stack_frame(state);
-//      print_stack_to_check(state);
-
-
-//      if (task_called_name.compare("Task2") == 0){
-//        log.status() << "----------Move frame---------"
-//                     << task_called_name << messaget::eom;
-//        move_top_stack_frame(state, true);
-//        print_stack_to_check(state);
-//      }
-
       called_function_type = No_Function;
       break;
     case Schedule_after_ActivateTask:
       break;
-      //execute & assign priority
-      log.status() << "execute schedule 1" << messaget::eom;
-      execute_next_instruction(get_goto_function, state);
-      print_stack_to_check(state);
-      log.status() << "assign_priority_and_execution_order_after_API_SCHEDULE"<< messaget::eom;
-      goto_symext::assign_priority_and_execution_order_after_API(
-        state, get_goto_function); //assign priority - if needed
-                                   //      called_function_type = No_Function;
-      print_stack_to_check(state);
-      execute_next_instruction(get_goto_function, state);
-      log.status() << "execute schedule 2" << messaget::eom;
-      goto_symext::assign_priority_and_execution_order_after_API(
-        state, get_goto_function); //assign priority - if needed
-                                   //      called_function_type = No_Function;
-//      execute_next_instruction(
-//        get_goto_function, state); //run until a new Function_type found -> thieu vi tri
-      break;
+
     case ChainTask:
-      //execute task
-//      log.status() << "**Execute ChainTask: " << messaget::eom;
-//      print_symex_step(state);
-//      symex_function_call(get_goto_function, state, instruction);
-//      called_function_type = ChainTask;
-//      break;
-//    case Schedule_after_ChainTask:
-      log.status() << "----------------------------------------" << messaget::eom;
-      log.status() << "Execute ChainTask " << messaget::eom;
+//      log.status() << "----------------------------------------" << messaget::eom;
+//      log.status() << "Execute ChainTask " << messaget::eom;
 
 
       //execute ChainTask
       execute_next_instruction(get_goto_function, state);
       assign_value_to_top_stack_frame(state);
-      print_stack_to_check(state);
+//      print_stack_to_check(state);
 
       caller_ChainTask = call_stack.top().task_name; //remember task name for ending
-      log.status() << "Caller ChainTask: " << caller_ChainTask << messaget::eom;
+//      log.status() << "Caller ChainTask: " << caller_ChainTask << messaget::eom;
       //execute API
-//      while (state.source.function_id.compare("ChainTask") == 0){
       while(as_string(state.source.function_id).find("ChainTask") != std::string::npos){
         //execute instruction in ChainTask
-        log.status() << "--> symex_step: "
-                     << state.source.function_id << " "
-                     << format(state.source.pc->code())<< messaget::eom;
+//        log.status() << "--> symex_step: "
+//                     << state.source.function_id << " "
+//                     << format(state.source.pc->code())<< messaget::eom;
         execute_next_instruction(get_goto_function, state);
-//        assign_value_to_top_stack_frame(state);
-        print_stack_to_check(state);
+//        print_stack_to_check(state);
       }
 
       call_stack.pop(); //for ChainTask
       call_stack.pop(); //for caller
-      log.status() << "--> remove current task" << messaget::eom;
-      print_stack_to_check(state);
-//      //remove task frame related to caller
-//      while (call_stack.top().task_name.compare(caller_ChainTask) == 0)
-//        call_stack.pop();
+//      log.status() << "--> remove current task" << messaget::eom;
+//      print_stack_to_check(state);
 
       //execute Wrapper Function
-      log.status() << "--> execute wrapper task: "
-                   << state.source.function_id << messaget::eom;
+//      log.status() << "--> execute wrapper task: "
+//                   << state.source.function_id << messaget::eom;
       execute_next_instruction(get_goto_function, state);
-//      call_stack.pop();
       assign_value_to_top_stack_frame(state);
-      print_stack_to_check(state);
+//      print_stack_to_check(state);
 
-      log.status() << "----------Move frame---------"
-                   << called_task_name
-                   << messaget::eom;
+//      log.status() << "----------Move frame---------"
+//                   << called_task_name
+//                   << messaget::eom;
       move_top_stack_frame_follow_priority(state, true);
-      print_stack_to_check(state);
+//      print_stack_to_check(state);
 
       //remove caller chaintask
-      log.status() << "--> remove caller chaintask: "
-                   << state.source.function_id << messaget::eom;
+//      log.status() << "--> remove caller chaintask: "
+//                   << state.source.function_id << messaget::eom;
       symex_end_of_function(state); //terminate function
       symex_transition(state);
-      print_stack_to_check(state);
+//      print_stack_to_check(state);
       called_function_type = No_Function;
-
-      //      log.status() << "1 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute ActivateTask
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "2 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute ActivateTask
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "3 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute TASK1
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "4 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute Schedule
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "5 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute TASK1
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "6 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id << " "
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute T1
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-      //
-      //      log.status() << "move?" << messaget::eom;
-
-      //      called_function_type = ActivateTask; //no needed!
-      //      log.status() << "----------------------------------------"
-      //                   << task_called_name << messaget::eom;
-
-      //      log.status() << "7 " << messaget::eom;
-      //      log.status() << "--> symex_step: "
-      //                   << state.source.function_id
-      //                   << format(state.source.pc->code())<< messaget::eom;
-      //      execute_next_instruction(get_goto_function, state); //execute T1
-      //      assign_value_to_top_stack_frame(state);
-      //      print_stack_to_check(state);
-
-
-      //      if (task_called_name.compare("Task2") == 0){
-      //        log.status() << "----------Move frame---------"
-      //                     << task_called_name << messaget::eom;
-      //        move_top_stack_frame(state, true);
-      //        print_stack_to_check(state);
-      //      }
-
-//      break;
-      //    case Schedule:
-      //end current task -> remove task frame
-//      log.status() << "Schedule after ChainTask " << messaget::eom;
-//      log.status() << "**Remove 1st Task from stack: "
-//                   << call_stack.top().task_name << ":"
-//                   << call_stack.top().task_priority << messaget::eom;
-//      call_stack.pop();
-//      log.status() << "**Remove 2nd Task from stack: "
-//                   << call_stack.top().task_name << ":"
-//                   << call_stack.top().task_priority << messaget::eom;
-//      call_stack.pop();
-//      log.status() << "**Remove 3rd Task from stack: "
-//                   << call_stack.top().task_name << ":"
-//                   << call_stack.top().task_priority << messaget::eom;
-//      call_stack.pop();
-//      print_stack_to_check(state);
-//
-//      //      symex_end_of_function(state); //auto go to the last task frame instruction
-//      symex_transition(state);
-//      symex_function_call(get_goto_function, state, instruction);
-//      goto_symext::assign_priority_and_execution_order_after_API(
-//        state, get_goto_function); //assign priority - if needed
-//      called_function_type = Normal_Function;
-//      print_stack_to_check(state);
       break;
     default:
-      //      called_function_type = Normal_Function; //cannot set value here
       execute_next_instruction(get_goto_function, state);
-      //      called_function_type = Normal_Function; -> will not realize next step for scheduling
       break;
     }
     assign_value_to_top_stack_frame(state);
-    print_stack_to_check(state);
+//    print_stack_to_check(state);
   } else { //instruction only
       execute_next_instruction(get_goto_function, state);
   }
-//  is_related_API_function_call = 0;
 
   kill_instruction_local_symbols(state);
 }

@@ -29,9 +29,9 @@ std::map<irep_idt, int> cbmc_osek_configuration::task_priority;
 void cbmc_osek_configuration::get_task_attribute_from_oil()
 {
   //from filename and path
-  std::cout << "Reading soure files" << std::endl;
-  std::cout << "Current working directory: " << source_path << std::endl;
-  std::cout << "Current working file: " << source_file << std::endl;
+//  std::cout << "Reading soure files" << std::endl;
+//  std::cout << "Current working directory: " << source_path << std::endl;
+//  std::cout << "Current working file: " << source_file << std::endl;
 
   std::string from_cpp = ".cpp";
   std::string to_oil = ".oil";
@@ -42,7 +42,7 @@ void cbmc_osek_configuration::get_task_attribute_from_oil()
     oil_file.replace(start_pos, from_cpp.length(), to_oil);
   }
 
-  std::cout << "Current oil file: " << oil_file << std::endl;
+//  std::cout << "Current oil file: " << oil_file << std::endl;
 
   define_main_task_priority();
   read_configuration_from_oil_file();
@@ -177,63 +177,15 @@ void cbmc_osek_configuration::read_configuration_from_oil_file(){
   }
 
   // Print parsed tasks
-  for (const auto &[tid, name] : task_id)
-  {
-//    for(const auto &[name, t] : tasks)
-//    {
-      std::cout << "id: " << tid << "- TASK: " << tasks[name].name << "\n";
-      std::cout << "  SCHEDULE = " << (tasks[name].schedule_type ? "FULL" : "NON")<< "\n";
-      std::cout << "  PRIORITY = " << tasks[name].priority << "\n";
-      std::cout << "  AUTOSTART = " << (tasks[name].autostart ? "TRUE" : "FALSE") << "\n";
-  }
-
-
-//  while (std::getline(file, line)) {
-//
-//    // Check for TASK line
-//    if (std::regex_search(line, match, task_regex)) {
-//      current_task = match[1];
-//    }
-//    // Check for PRIORITY inside current TASK
-//    else {
-//      if (std::regex_search(line, match, priority_regex) && !current_task.empty()) {
-//        int priority = std::stoi(match[1]);
-//
-//        task_id[++id] = current_task;
-//        task = current_task + "()";
-//        _task_id = "_" + task;
-//        __task_wrapper = "_" + _task_id ;
-//
-//        task_priority[task] = priority;
-//        task_priority[_task_id] = priority;
-//        task_priority[__task_wrapper] = priority;
-//      } else if (std::regex_search(line, match, schedule_regex) && !current_task.empty())  {
-//          std::string scheduleValue = match[1];
-//          if(std::equal(scheduleValue.begin(), scheduleValue.end(), "NON"))
-//          {
-//            task_schedule_type[task] = SCHEDULE_NON;
-//          }
-//          else
-//          {
-//            task_schedule_type[task] = SCHEDULE_FULL;
-//          }
-//
-//          current_task.clear();  // reset after getting task info
-//          task.clear();
-//          _task_id.clear();
-//          __task_wrapper.clear();
-//      }
-//    }
+//  for (const auto &[tid, name] : task_id)
+//  {
+//      std::cout << "id: " << tid << "- TASK: " << tasks[name].name << "\n";
+//      std::cout << "  SCHEDULE = " << (tasks[name].schedule_type ? "FULL" : "NON")<< "\n";
+//      std::cout << "  PRIORITY = " << tasks[name].priority << "\n";
+//      std::cout << "  AUTOSTART = " << (tasks[name].autostart ? "TRUE" : "FALSE") << "\n";
 //  }
 
   file.close();
-  // Output result
-//  for (const auto& [task, priority] : task_priority) {
-//    std::cout << "Task: " << task << " | Priority: " << priority  << '\n';
-//  }
-//  for (const auto& [task, type] : task_schedule_type) {
-//    std::cout << "Task: " << task << " | Schedule: " << (task_schedule_type[task] ? "FULL":"NON") << '\n';
-//  }
 }
 
 irep_idt cbmc_osek_configuration::get_task_name(int function_id){
