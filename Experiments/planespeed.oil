@@ -1,0 +1,20 @@
+TASK contask {
+    TYPE = BASIC;
+    PRIORITY = 2;
+    SCHEDULE = FULL;
+    AUTOSTART= TRUE;
+}
+
+TASK inctask {
+    TYPE = BASIC;
+    PRIORITY = 3;
+    SCHEDULE = NON;
+    AUTOSTART= FALSE;
+}
+
+TASK dectask {
+    TYPE = BASIC;
+    PRIORITY = 3;
+    SCHEDULE = NON;
+    AUTOSTART= FALSE;
+}

@@ -1,5 +1,5 @@
 TASK t1 {
-    SCHEDULE = NON;
+    SCHEDULE = FULL;
     PRIORITY = 3;
     AUTOSTART=TRUE;
 };
